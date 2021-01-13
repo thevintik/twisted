@@ -1634,9 +1634,9 @@ def inlineCallbacks(f):
                 "inlineCallbacks requires %r to produce a generator; instead"
                 "caught returnValue being used in a non-generator" % (f,)
             )
-        if not isinstance(gen, types.GeneratorType):
+        if not isinstance(gen, types.GeneratorType) and not iscoroutine(gen):
             raise TypeError(
-                "inlineCallbacks requires %r to produce a generator; "
+                "inlineCallbacks requires %r to produce a generator or coroutine; "
                 "instead got %r" % (f, gen)
             )
         return _cancellableInlineCallbacks(gen)
