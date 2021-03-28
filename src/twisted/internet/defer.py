@@ -1821,7 +1821,7 @@ def inlineCallbacks(
                 "inlineCallbacks requires %r to produce a generator or coroutine; "
                 "instead got %r" % (f, gen)
             )
-        return _cancellableInlineCallbacks(gen)  # type: ignore[unreachable]
+        return _cancellableInlineCallbacks(gen)
 
     return unwindGenerator
 
