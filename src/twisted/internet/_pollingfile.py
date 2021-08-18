@@ -101,6 +101,9 @@ import win32file  # type: ignore[import]
 import win32pipe  # type: ignore[import]
 
 
+_SYSTEM_DEFAULT_PIPE_BUFFER_SIZE = 4096 # TODO: derive buffer size via win32pipe.GetNamedPipeInfo() or something else
+
+
 @implementer(IPushProducer)
 class _PollableReadPipe(_PollableResource):
     def __init__(self, pipe, receivedCallback, lostCallback):
@@ -130,7 +133,11 @@ class _PollableReadPipe(_PollableResource):
             self.receivedCallback(dataBuf)
         if finished:
             self.cleanup()
-        return len(dataBuf)
+
+        # Additional divisor present because we don't need to speed up if some bytes are read,
+        # we need to speed up only if pipe buffer is about to be overflowed.
+        # It fixes bug https://twistedmatrix.com/trac/ticket/2789
+        return len(dataBuf) // (_SYSTEM_DEFAULT_PIPE_BUFFER_SIZE // 4)
 
     def cleanup(self):
         self.deactivate()
