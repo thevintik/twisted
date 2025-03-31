@@ -239,3 +239,31 @@ class AwaitTests(TestCase):
 
         res = self.successResultOf(d)
         self.assertEqual(res, "bye")
+
+    async def test_multipleDeferredFailureObservation(self) -> None:
+        """
+        Multiple awaits within single callback chain of Deferred that fires
+        with a Failure will result in the same type of error that the Failure
+        has, not any other error.
+        """
+
+        def returnsFailure() -> Failure:
+            try:
+                raise SampleException()
+            except SampleException:
+                return Failure()
+
+        reactor = Clock()
+        d: Deferred[None] = Deferred()
+        reactor.callLater(1, d.errback, returnsFailure())
+
+        async def observation_chain() -> None:
+            try:
+                await d
+            finally:
+                await d
+
+        d2 = Deferred.fromCoroutine(observation_chain())
+        reactor.advance(2)
+        failure = self.failureResultOf(d2)
+        self.assertIsInstance(failure.value, SampleException)
