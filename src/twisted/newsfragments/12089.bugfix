@@ -1,0 +1,1 @@
+twisted.internet.defer.Deferred no longer produces wrong AssertionError while running callbacks.
